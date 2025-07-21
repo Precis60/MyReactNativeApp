@@ -1,14 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useSiteStore } from './stores/siteStore';
+import SiteSelectionScreen from './screens/SiteSelectionScreen';
 
 const Tab = createBottomTabNavigator();
 
 // Home Screen Component
 function HomeScreen() {
+  const { selectedSite, getSiteStats } = useSiteStore();
+  const [showSiteSelector, setShowSiteSelector] = useState(false);
+  const stats = getSiteStats();
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'online': return '#48bb78';
+      case 'maintenance': return '#ed8936';
+      case 'offline': return '#f56565';
+      default: return '#718096';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'online': return '🟢';
+      case 'maintenance': return '🟡';
+      case 'offline': return '🔴';
+      default: return '⚪';
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -16,6 +40,49 @@ function HomeScreen() {
         <Text style={styles.appTitle}>Security Plus</Text>
         <Text style={styles.subtitle}>Professional Security Management</Text>
       </View>
+      
+      {/* Site Selector */}
+      <View style={styles.siteSelector}>
+        <TouchableOpacity 
+          style={styles.currentSiteCard}
+          onPress={() => setShowSiteSelector(true)}
+        >
+          <View style={styles.currentSiteHeader}>
+            <Text style={styles.currentSiteLabel}>Current Site</Text>
+            <TouchableOpacity style={styles.changeSiteButton}>
+              <Text style={styles.changeSiteText}>Change Site</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.currentSiteName}>{selectedSite?.name || 'No Site Selected'}</Text>
+          <Text style={styles.currentSiteAddress}>{selectedSite?.address}</Text>
+          <View style={styles.currentSiteStatus}>
+            <Text style={styles.statusIcon}>{getStatusIcon(selectedSite?.status)}</Text>
+            <Text style={[styles.statusText, { color: getStatusColor(selectedSite?.status) }]}>
+              {selectedSite?.status?.toUpperCase() || 'UNKNOWN'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        
+        <View style={styles.siteStatsRow}>
+          <View style={styles.miniStatCard}>
+            <Text style={styles.miniStatNumber}>{stats.total}</Text>
+            <Text style={styles.miniStatLabel}>Total Sites</Text>
+          </View>
+          <View style={styles.miniStatCard}>
+            <Text style={styles.miniStatNumber}>{stats.online}</Text>
+            <Text style={styles.miniStatLabel}>Online</Text>
+          </View>
+          <View style={styles.miniStatCard}>
+            <Text style={styles.miniStatNumber}>{selectedSite?.cameras || 0}</Text>
+            <Text style={styles.miniStatLabel}>Cameras</Text>
+          </View>
+        </View>
+      </View>
+      
+      <SiteSelectionScreen 
+        visible={showSiteSelector}
+        onClose={() => setShowSiteSelector(false)}
+      />
       
       <View style={styles.dashboardGrid}>
         <TouchableOpacity style={styles.dashboardCard}>
@@ -332,5 +399,90 @@ const styles = StyleSheet.create({
     color: '#90cdf4',
     fontSize: 14,
     fontWeight: '400',
+  },
+  siteSelector: {
+    padding: 15,
+    paddingTop: 0,
+  },
+  currentSiteCard: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  currentSiteHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  currentSiteLabel: {
+    fontSize: 14,
+    color: '#718096',
+    fontWeight: '500',
+  },
+  changeSiteButton: {
+    backgroundColor: '#1a365d',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  changeSiteText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  currentSiteName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2d3748',
+    marginBottom: 4,
+  },
+  currentSiteAddress: {
+    fontSize: 14,
+    color: '#718096',
+    marginBottom: 8,
+  },
+  currentSiteStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  siteStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  miniStatCard: {
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  miniStatNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a365d',
+  },
+  miniStatLabel: {
+    fontSize: 11,
+    color: '#718096',
+    marginTop: 2,
   },
 });
