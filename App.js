@@ -39,6 +39,13 @@ function HomeScreen() {
         </TouchableOpacity>
       </View>
       
+      <View style={styles.supportSection}>
+        <TouchableOpacity style={styles.supportButton}>
+          <Text style={styles.supportButtonText}>🔧 Maintenance & Support</Text>
+          <Text style={styles.supportSubtext}>Contact Precision Cabling & Automation</Text>
+        </TouchableOpacity>
+      </View>
+      
       <View style={styles.statusSection}>
         <Text style={styles.sectionTitle}>System Status</Text>
         <View style={styles.statusItem}>
@@ -99,6 +106,9 @@ function SettingsScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingsItem}>
           <Text style={styles.settingsText}>🔔 Notifications</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.settingsItem}>
+          <Text style={styles.settingsText}>🔧 Maintenance & Support</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingsItem}>
           <Text style={styles.settingsText}>ℹ️ About Security Plus</Text>
@@ -293,5 +303,34 @@ const styles = StyleSheet.create({
   settingsText: {
     fontSize: 16,
     color: '#2d3748',
+  },
+  supportSection: {
+    padding: 15,
+    paddingTop: 5,
+  },
+  supportButton: {
+    backgroundColor: '#1a365d',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  supportButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  supportSubtext: {
+    color: '#90cdf4',
+    fontSize: 14,
+    fontWeight: '400',
   },
 });
