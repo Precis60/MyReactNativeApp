@@ -1,29 +1,36 @@
 {
   "expo": {
-    "name": "MyReactNativeApp",
-    "slug": "MyReactNativeApp",
+    "name": "Security Plus",
+    "slug": "security-plus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "description": "Professional security and automation management app by Precision Cabling & Automation",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1a365d"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.precisioncabling.securityplus"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1a365d"
       },
+      "package": "com.precisioncabling.securityplus",
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "companyName": "Precision Cabling & Automation",
+      "appName": "Security Plus"
     }
   }
 }
