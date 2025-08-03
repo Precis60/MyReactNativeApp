@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useCameraStore } from '../stores/cameraStore';
 import { useSiteStore } from '../stores/siteStore';
+import LiveStreamPlayer from '../components/LiveStreamPlayer';
 
 const CameraManagementScreen = () => {
   const { 
@@ -451,12 +452,11 @@ const CameraManagementScreen = () => {
             {selectedCamera && (
               <>
                 <View style={styles.feedContainer}>
-                  <Text style={styles.feedPlaceholder}>
-                    📹 Live Feed Placeholder
-                  </Text>
-                  <Text style={styles.feedSubtext}>
-                    Stream: {selectedCamera.streamUrl}
-                  </Text>
+                  <LiveStreamPlayer 
+                    streamUrl={selectedCamera.streamUrl}
+                    cameraName={selectedCamera.name}
+                    style={styles.liveStreamPlayer}
+                  />
                 </View>
 
                 {selectedCamera.ptzCapable && (
@@ -745,21 +745,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   feedContainer: {
-    backgroundColor: '#000',
-    height: 200,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 20,
   },
-  feedPlaceholder: {
-    color: '#fff',
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  feedSubtext: {
-    color: '#90cdf4',
-    fontSize: 12,
+  liveStreamPlayer: {
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   ptzControls: {
     backgroundColor: '#fff',
