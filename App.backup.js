@@ -6,7 +6,6 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSiteStore } from './stores/siteStore';
 import SiteSelectionScreen from './screens/SiteSelectionScreen';
-import CameraManagementScreen from './screens/CameraManagementScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -130,7 +129,30 @@ function HomeScreen() {
   );
 }
 
-
+// Monitoring Screen Component
+function MonitoringScreen() {
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.appTitle}>Live Monitoring</Text>
+      </View>
+      <View style={styles.monitoringGrid}>
+        <View style={styles.monitoringCard}>
+          <Text style={styles.cardTitle}>📹 Camera Feed 1</Text>
+          <View style={styles.cameraPlaceholder}>
+            <Text style={styles.placeholderText}>Main Entrance</Text>
+          </View>
+        </View>
+        <View style={styles.monitoringCard}>
+          <Text style={styles.cardTitle}>📹 Camera Feed 2</Text>
+          <View style={styles.cameraPlaceholder}>
+            <Text style={styles.placeholderText}>Parking Area</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 // Settings Screen Component
 function SettingsScreen() {
@@ -192,9 +214,9 @@ export default function App() {
           />
           <Tab.Screen 
             name="Monitoring" 
-            component={CameraManagementScreen}
+            component={MonitoringScreen}
             options={{
-              tabBarLabel: 'Cameras',
+              tabBarLabel: 'Monitor',
               headerShown: false,
             }}
           />
