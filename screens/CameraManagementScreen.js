@@ -33,6 +33,8 @@ const CameraManagementScreen = () => {
   const { selectedSite } = useSiteStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCameraDetails, setShowCameraDetails] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCamera, setEditingCamera] = useState(null);
   const [newCamera, setNewCamera] = useState({
     name: '',
     brand: 'Vivotek',
@@ -114,6 +116,36 @@ const CameraManagementScreen = () => {
     );
   };
 
+  const handleEditCamera = (camera) => {
+    setEditingCamera({ ...camera });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateCamera = () => {
+    if (!editingCamera.name || !editingCamera.ipAddress || !editingCamera.brand) {
+      Alert.alert('Error', 'Please fill in camera name, brand, and IP address');
+      return;
+    }
+
+    const brandConfig = getBrandConfig(editingCamera.brand);
+    const streamUrl = generateStreamUrl(
+      editingCamera.brand,
+      editingCamera.ipAddress,
+      editingCamera.port || brandConfig.defaultPort
+    );
+
+    updateCamera(editingCamera.id, {
+      ...editingCamera,
+      port: editingCamera.port || brandConfig.defaultPort,
+      username: editingCamera.username || brandConfig.defaultUsername,
+      streamUrl
+    });
+
+    setShowEditModal(false);
+    setEditingCamera(null);
+    Alert.alert('Success', `${editingCamera.name} updated successfully!`);
+  };
+
   const renderCameraCard = ({ item: camera }) => (
     <View style={styles.cameraCard}>
       <View style={styles.cameraHeader}>
@@ -165,6 +197,13 @@ const CameraManagementScreen = () => {
           <Text style={styles.actionButtonText}>
             {connectionStatus[camera.id] === 'testing' ? 'Testing...' : 'Test'}
           </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#f6ad55' }]}
+          onPress={() => handleEditCamera(camera)}
+        >
+          <Text style={styles.actionButtonText}>Edit</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -428,6 +467,164 @@ const CameraManagementScreen = () => {
             <TouchableOpacity style={styles.saveButton} onPress={handleAddCamera}>
               <Text style={styles.saveButtonText}>Add Camera</Text>
             </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Edit Camera Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Edit Camera</Text>
+            <TouchableOpacity onPress={() => {
+              setShowEditModal(false);
+              setEditingCamera(null);
+            }}>
+              <Text style={styles.closeButton}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            {editingCamera && (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Camera Brand *</Text>
+                  <View style={styles.pickerContainer}>
+                    {getSupportedBrands().map((brand) => (
+                      <TouchableOpacity
+                        key={brand}
+                        style={[
+                          styles.brandButton,
+                          editingCamera.brand === brand && styles.selectedBrandButton
+                        ]}
+                        onPress={() => {
+                          const brandConfig = getBrandConfig(brand);
+                          setEditingCamera({
+                            ...editingCamera,
+                            brand,
+                            port: brandConfig.defaultPort.toString(),
+                            username: brandConfig.defaultUsername,
+                            ptzCapable: brandConfig.ptzSupport
+                          });
+                        }}
+                      >
+                        <Text style={[
+                          styles.brandButtonText,
+                          editingCamera.brand === brand && styles.selectedBrandButtonText
+                        ]}>
+                          {brand}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Camera Name *</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.name}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, name: text})}
+                    placeholder="Enter camera name"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Model</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.model}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, model: text})}
+                    placeholder="Enter camera model"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>IP Address *</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.ipAddress}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, ipAddress: text})}
+                    placeholder="192.168.1.100"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Port</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.port}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, port: text})}
+                    placeholder="554"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Username</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.username}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, username: text})}
+                    placeholder="Enter username"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Password</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.password}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, password: text})}
+                    placeholder="Enter password"
+                    secureTextEntry
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Location</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editingCamera.location}
+                    onChangeText={(text) => setEditingCamera({...editingCamera, location: text})}
+                    placeholder="Enter camera location"
+                  />
+                </View>
+
+                <View style={styles.switchGroup}>
+                  <Text style={styles.inputLabel}>Night Vision</Text>
+                  <Switch
+                    value={editingCamera.nightVision}
+                    onValueChange={(value) => setEditingCamera({...editingCamera, nightVision: value})}
+                  />
+                </View>
+
+                <View style={styles.switchGroup}>
+                  <Text style={styles.inputLabel}>PTZ Capable</Text>
+                  <Switch
+                    value={editingCamera.ptzCapable}
+                    onValueChange={(value) => setEditingCamera({...editingCamera, ptzCapable: value})}
+                  />
+                </View>
+
+                <View style={styles.switchGroup}>
+                  <Text style={styles.inputLabel}>Enable Recording</Text>
+                  <Switch
+                    value={editingCamera.recording}
+                    onValueChange={(value) => setEditingCamera({...editingCamera, recording: value})}
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.saveButton} onPress={handleUpdateCamera}>
+                  <Text style={styles.saveButtonText}>Update Camera</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </ScrollView>
         </View>
       </Modal>
