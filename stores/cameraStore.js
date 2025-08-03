@@ -1,38 +1,50 @@
 import { create } from 'zustand';
 
-// Camera brand configurations
+// Camera brand configurations - Updated to use ONVIF standard endpoints
 const CAMERA_BRANDS = {
   'Vivotek': {
     defaultPort: 554,
-    streamPath: '/live.sdp',
+    streamPath: '/onvif/media_service/streaming',
+    onvifPort: 80,
+    onvifPath: '/onvif/device_service',
     defaultUsername: 'admin',
     ptzSupport: true,
-    commonModels: ['IB9367-HT', 'IB9389-HT', 'FD9389-HTV', 'IP9181-H']
+    commonModels: ['IB9367-HT', 'IB9389-HT', 'FD9389-HTV', 'IP9181-H'],
+    onvifProfile: 'MainStream'
   },
   'Axis': {
     defaultPort: 554,
-    streamPath: '/axis-media/media.amp?videocodec=h264',
+    streamPath: '/onvif/media_service/streaming',
+    onvifPort: 80,
+    onvifPath: '/onvif/device_service',
     defaultUsername: 'root',
     ptzSupport: true,
-    commonModels: ['P3245-LV', 'M3046-V', 'P1455-LE', 'Q6055-E']
+    commonModels: ['P3245-LV', 'M3046-V', 'P1455-LE', 'Q6055-E'],
+    onvifProfile: 'Profile_1'
   },
   'Hikvision': {
     defaultPort: 554,
-    streamPath: '/Streaming/Channels/101',
+    streamPath: '/onvif/media_service/streaming',
+    onvifPort: 80,
+    onvifPath: '/onvif/device_service',
     defaultUsername: 'admin',
     ptzSupport: true,
-    commonModels: ['DS-2CD2385FWD-I', 'DS-2DE4A425IW-DE', 'DS-2CD2143G0-IS']
+    commonModels: ['DS-2CD2385FWD-I', 'DS-2DE4A425IW-DE', 'DS-2CD2143G0-IS'],
+    onvifProfile: 'MediaProfile000'
   },
   'Dahua': {
     defaultPort: 554,
-    streamPath: '/cam/realmonitor?channel=1&subtype=0',
+    streamPath: '/onvif/media_service/streaming',
+    onvifPort: 80,
+    onvifPath: '/onvif/device_service',
     defaultUsername: 'admin',
     ptzSupport: true,
-    commonModels: ['IPC-HFW4431R-Z', 'SD59225U-HNI', 'IPC-HDBW4431R-AS']
+    commonModels: ['IPC-HFW4431R-Z', 'SD59225U-HNI', 'IPC-HDBW4431R-AS'],
+    onvifProfile: 'MainStream'
   }
 };
 
-// Sample camera data - in production this would come from an API
+// Sample camera data - Updated to use ONVIF feeds
 const sampleCameras = [
   {
     id: 1,
@@ -42,10 +54,12 @@ const sampleCameras = [
     ipAddress: '192.168.1.100',
     port: 554,
     username: 'admin',
-    password: '', // In production, this would be encrypted
+    password: 'admin123', // In production, this would be encrypted
     location: 'Front Door',
     status: 'online',
-    streamUrl: 'rtsp://192.168.1.100:554/live.sdp',
+    streamUrl: 'rtsp://admin:admin123@192.168.1.100:554/onvif/media_service/streaming?profile=MainStream&onvif=true',
+    onvifUrl: 'http://192.168.1.100:80/onvif/device_service',
+    streamType: 'ONVIF',
     resolution: '4K',
     nightVision: true,
     ptzCapable: true,
@@ -61,10 +75,12 @@ const sampleCameras = [
     ipAddress: '192.168.1.101',
     port: 554,
     username: 'root',
-    password: '',
+    password: 'axis123',
     location: 'Parking Lot',
     status: 'online',
-    streamUrl: 'rtsp://192.168.1.101:554/axis-media/media.amp?videocodec=h264',
+    streamUrl: 'rtsp://root:axis123@192.168.1.101:554/onvif/media_service/streaming?profile=Profile_1&onvif=true',
+    onvifUrl: 'http://192.168.1.101:80/onvif/device_service',
+    streamType: 'ONVIF',
     resolution: '1080p',
     nightVision: true,
     ptzCapable: false,
@@ -80,10 +96,12 @@ const sampleCameras = [
     ipAddress: '192.168.1.102',
     port: 554,
     username: 'admin',
-    password: '',
+    password: 'hik123',
     location: 'Office Area',
     status: 'offline',
-    streamUrl: 'rtsp://192.168.1.102:554/Streaming/Channels/101',
+    streamUrl: 'rtsp://admin:hik123@192.168.1.102:554/onvif/media_service/streaming?profile=MediaProfile000&onvif=true',
+    onvifUrl: 'http://192.168.1.102:80/onvif/device_service',
+    streamType: 'ONVIF',
     resolution: '4K',
     nightVision: true,
     ptzCapable: false,
@@ -106,10 +124,34 @@ export const useCameraStore = create((set, get) => ({
     return CAMERA_BRANDS[brand] || CAMERA_BRANDS['Vivotek'];
   },
 
-  generateStreamUrl: (brand, ipAddress, port, streamPath = null) => {
+  generateStreamUrl: (brand, ipAddress, port, streamPath = null, username = null, password = null) => {
     const config = CAMERA_BRANDS[brand] || CAMERA_BRANDS['Vivotek'];
     const path = streamPath || config.streamPath;
-    return `rtsp://${ipAddress}:${port}${path}`;
+    const streamPort = port || config.defaultPort;
+    
+    // Generate ONVIF-compliant RTSP URL with authentication
+    if (username && password) {
+      return `rtsp://${username}:${password}@${ipAddress}:${streamPort}${path}`;
+    }
+    return `rtsp://${ipAddress}:${streamPort}${path}`;
+  },
+
+  generateOnvifUrl: (brand, ipAddress, username = null, password = null) => {
+    const config = CAMERA_BRANDS[brand] || CAMERA_BRANDS['Vivotek'];
+    const onvifPort = config.onvifPort || 80;
+    const onvifPath = config.onvifPath || '/onvif/device_service';
+    
+    // Generate ONVIF device service URL
+    return `http://${ipAddress}:${onvifPort}${onvifPath}`;
+  },
+
+  getOnvifStreamUrl: (brand, ipAddress, username = null, password = null) => {
+    const config = CAMERA_BRANDS[brand] || CAMERA_BRANDS['Vivotek'];
+    const profile = config.onvifProfile || 'MainStream';
+    
+    // Generate ONVIF media stream URL with profile
+    const baseUrl = get().generateStreamUrl(brand, ipAddress, config.defaultPort, config.streamPath, username, password);
+    return `${baseUrl}?profile=${profile}&onvif=true`;
   },
 
   getSupportedBrands: () => {
@@ -119,18 +161,34 @@ export const useCameraStore = create((set, get) => ({
   // Actions
   addCamera: (cameraData) => {
     const brandConfig = get().getBrandConfig(cameraData.brand);
-    const streamUrl = get().generateStreamUrl(
+    const username = cameraData.username || brandConfig.defaultUsername;
+    const password = cameraData.password || 'admin';
+    
+    // Generate ONVIF stream URL with authentication
+    const streamUrl = get().getOnvifStreamUrl(
       cameraData.brand, 
       cameraData.ipAddress, 
-      cameraData.port || brandConfig.defaultPort
+      username,
+      password
+    );
+    
+    // Generate ONVIF device service URL for management
+    const onvifUrl = get().generateOnvifUrl(
+      cameraData.brand,
+      cameraData.ipAddress,
+      username,
+      password
     );
     
     const newCamera = {
       ...cameraData,
       id: Math.max(...get().cameras.map(c => c.id)) + 1,
       port: cameraData.port || brandConfig.defaultPort,
-      username: cameraData.username || brandConfig.defaultUsername,
+      username,
+      password,
       streamUrl,
+      onvifUrl,
+      streamType: 'ONVIF',
       lastSeen: new Date().toISOString(),
       status: 'offline' // Will be updated when connection is tested
     };
@@ -142,11 +200,37 @@ export const useCameraStore = create((set, get) => ({
 
   updateCamera: (cameraId, updates) => {
     set(state => ({
-      cameras: state.cameras.map(camera => 
-        camera.id === cameraId 
-          ? { ...camera, ...updates, lastSeen: new Date().toISOString() }
-          : camera
-      )
+      cameras: state.cameras.map(camera => {
+        if (camera.id === cameraId) {
+          const updatedCamera = { ...camera, ...updates };
+          
+          // Regenerate ONVIF URLs if IP address, brand, username, or password changed
+          if (updates.ipAddress || updates.brand || updates.username || updates.password) {
+            const brandConfig = get().getBrandConfig(updatedCamera.brand);
+            const username = updatedCamera.username || brandConfig.defaultUsername;
+            const password = updatedCamera.password || 'admin';
+            
+            updatedCamera.streamUrl = get().getOnvifStreamUrl(
+              updatedCamera.brand,
+              updatedCamera.ipAddress,
+              username,
+              password
+            );
+            
+            updatedCamera.onvifUrl = get().generateOnvifUrl(
+              updatedCamera.brand,
+              updatedCamera.ipAddress,
+              username,
+              password
+            );
+            
+            updatedCamera.streamType = 'ONVIF';
+          }
+          
+          return { ...updatedCamera, lastSeen: new Date().toISOString() };
+        }
+        return camera;
+      })
     }));
   },
 
